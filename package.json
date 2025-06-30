@@ -1,0 +1,24 @@
+{
+  "name": "bitebotbackend",
+  "version": "1.0.0",
+  "description": "**Intelligent Recipe Platform with Cost & Nutrition Insights**",
+  "homepage": "https://github.com/wasiqAfnan/BiteBotBackend#readme",
+  "bugs": {
+    "url": "https://github.com/wasiqAfnan/BiteBotBackend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wasiqAfnan/BiteBotBackend.git"
+  },
+  "license": "GPL-3.0",
+  "author": "BiteBitTeam",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
+}
