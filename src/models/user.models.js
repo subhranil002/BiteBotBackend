@@ -131,7 +131,7 @@ const userSchema = new mongoose.Schema(
                 },
             ],
         },
-        
+
         // Embedded favourites array (mainly for normal users)
         favourites: [
             {
@@ -143,7 +143,6 @@ const userSchema = new mongoose.Schema(
             type: String,
         },
     },
-
     { timestamps: true }
 );
 
