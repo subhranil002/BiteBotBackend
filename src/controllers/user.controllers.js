@@ -16,7 +16,7 @@ export const handleRegister = async (req, res, next) => {
             /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
         if (!emailRegex.test(email)) {
-            throw new ApiError("Email Not Valid", 400);
+            throw new ApiError(400, "Email Not Valid");
         }
 
         // Password validation in controller
@@ -24,13 +24,13 @@ export const handleRegister = async (req, res, next) => {
             /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
         // check min 8 char, one uppercase, special char and number
         if (!passwordRegex.test(password)) {
-            throw new ApiError("Password Not Valid", 400);
+            throw new ApiError(400, "Password Not Valid");
         }
 
         // validate if user exists
         let user = await User.findOne({ email });
         if (user) {
-            throw new ApiError("User already exists with this email", 400);
+            throw new ApiError(400, "User already exists with this email");
         }
 
         // Prepare profile data - only include fields that are provided
@@ -41,13 +41,14 @@ export const handleRegister = async (req, res, next) => {
         // Create new user object
         const newUser = new User({
             email: email.toLowerCase(),
+            password: password,
             profile: profileData,
             favourites: [], // Initialize empty favourites array
         });
 
         // Save user to database
         const savedUser = await newUser.save();        
-
+        savedUser.password = undefined;
         // send response
         return res.status(201).json(
             new ApiResponse(201, "User Created Successfully", {
@@ -63,7 +64,7 @@ export const handleRegister = async (req, res, next) => {
 
         // For all other errors, send a generic error message
         return next(
-            new ApiError("Something went wrong during registration", 500)
+            new ApiError(500, "Something went wrong during registration")
         );
     }
 };
