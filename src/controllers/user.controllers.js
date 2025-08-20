@@ -136,13 +136,32 @@ export const handleLogin = async (req, res, next) => {
 
 export const handleLogout = async (req, res, next) => {
     try {
-        const user = 
+        const user = await User.findById(req.user._id);
+        user.refreshToken = undefined;
+        await user.save();
+
+        res.clearCookie("accessToken", {
+            httpOnly: false,
+            secure: false,
+        }).clearCookie("refreshToken", {
+            httpOnly: false,
+            secure: false,
+        });
 
         return res
         .status(200)
         .json(new ApiResponse(200, "Logged out successfully"));
     } catch (error) {
-        
+        console.log("Some Error Occured: ", error);
+        // If the error is already an instance of ApiError, pass it to the error handler
+        if (error instanceof ApiError) {
+            return next(error);
+        }
+
+        // For all other errors, send a generic error message
+        return next(
+            new ApiError(500, "Something went wrong during registration")
+        );
     }
     
 };
