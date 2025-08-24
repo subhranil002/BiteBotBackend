@@ -36,6 +36,6 @@ export const isLoggedIn = async (req, res, next) => {
         }
 
         // For all other errors, send a generic error message
-        return next(new ApiError(500, "Something went wrong during Logout"));
+        return next(new ApiError(500, "Something went wrong!"));
     }
 };
