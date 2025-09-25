@@ -6,7 +6,7 @@ import {
     handleChangeAvatar,
 } from "../controllers/user.controllers.js";
 import { isLoggedIn } from "../middlewares/auth.middlewares.js";
-import { upload } from "../middlewares/multer.middlewares.js";
+import upload from "../middlewares/multer.middlewares.js";
 
 const userRoutes = Router();
 
