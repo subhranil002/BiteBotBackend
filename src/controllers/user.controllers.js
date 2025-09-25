@@ -57,8 +57,7 @@ export const handleRegister = async (req, res, next) => {
         // saving refresh token to db
         newUser.refreshToken = refreshToken;
         const savedUser = await newUser.save();
-        
-        savedUser.password = undefined;
+
         savedUser.refreshToken = undefined;
         savedUser.password = undefined;
 
@@ -156,9 +155,7 @@ export const handleLogin = async (req, res, next) => {
         }
 
         // For all other errors, send a generic error message
-        return next(
-            new ApiError(500, "Something went wrong during login")
-        );
+        return next(new ApiError(500, "Something went wrong during login"));
     }
 };
 
@@ -177,8 +174,8 @@ export const handleLogout = async (req, res, next) => {
         });
 
         return res
-        .status(200)
-        .json(new ApiResponse(200, "Logged out successfully"));
+            .status(200)
+            .json(new ApiResponse(200, "Logged out successfully"));
     } catch (error) {
         console.log("Some Error Occured: ", error);
         // If the error is already an instance of ApiError, pass it to the error handler
@@ -187,9 +184,8 @@ export const handleLogout = async (req, res, next) => {
         }
 
         // For all other errors, send a generic error message
-        return next(
-            new ApiError(500, "Something went wrong during logout")
-        );
+        return next(new ApiError(500, "Something went wrong during logout"));
     }
-    
 };
+
+export const handleChangeAvatar = async (req, res, next) => {};
