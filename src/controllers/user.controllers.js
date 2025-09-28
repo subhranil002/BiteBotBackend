@@ -280,4 +280,26 @@ export const handleChangePassword = async (req, res, next) => {
     }
 };
 export const handleResetPassword = async (req, res, next) => {};
+
 export const handleForgetPassword = async (req, res, next) => {};
+
+export const handleGetProfile = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        return res.status(200).json(new ApiResponse(200, "User Profile Data", user));
+    } catch (error) {
+        // If the error is already an instance of ApiError, pass it to the error handler
+        if (error instanceof ApiError) {
+            return next(error);
+        }
+
+        // For all other errors, send a generic error message
+        return next(
+            new ApiError(500, "Something went wrong during file upload")
+        );
+    }
+};
