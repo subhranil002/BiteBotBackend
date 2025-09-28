@@ -10,11 +10,10 @@ export const deleteLocalFile = async (localFilePath) => {
 
         const absolutePath = path.resolve(localFilePath);
 
-        if (!(fs.existsSync(absolutePath))) {
-            console.log("Error while deleting local file");
+        if (fs.existsSync(absolutePath)) {
+            await fs.promises.unlink(absolutePath);
+            console.log("Deleted local file:", absolutePath);
         }
-        await fs.promises.unlink(absolutePath);
-        console.log("Deleted local file:", absolutePath);
     } catch (error) {
         console.log("File delete error:", error);
         throw new ApiError(500, "Error while deleting local file");
@@ -61,8 +60,10 @@ export const uploadImageToCloud = async (localFilePath) => {
 export const deleteCloudFile = async (public_id) => {
     try {
         if (!public_id) return true;
+        // console.log("ID: ", public_id);
 
-        const resource_type = public_id.split("_")[1].split("/")[0];
+        // const resource_type = public_id.split("_")[1].split("/")[0];
+        const resource_type = "image";
 
         console.log(public_id);
         console.log(resource_type);
@@ -73,6 +74,7 @@ export const deleteCloudFile = async (public_id) => {
 
         return true;
     } catch (error) {
-        throw new ApiError(500, error.message);
+        // throw new ApiError(500, "Eroor deleting old avatar file");
+        console.log("Error while deleting file", error);
     }
 };

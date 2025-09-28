@@ -217,7 +217,8 @@ export const handleChangeAvatar = async (req, res, next) => {
         }
 
         // Delete old avatar
-        const result = await deleteCloudFile(user?.avatar?.public_id);
+        // console.log(user?.profile?.avatar?.public_id);
+        const result = await deleteCloudFile(user?.profile?.avatar?.public_id);
         if (!result) {
             await deleteCloudFile(newAvatar.public_id);
             throw new ApiError(400, "Error deleting old avatar");
