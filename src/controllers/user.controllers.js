@@ -1,5 +1,11 @@
-import { ApiResponse, ApiError } from "../utils/index.js";
 import User from "../models/user.models.js";
+import {
+    ApiResponse,
+    ApiError,
+    uploadImageToCloud,
+    deleteLocalFile,
+    deleteCloudFile,
+} from "../utils/index.js";
 
 export const handleRegister = async (req, res, next) => {
     try {
@@ -189,5 +195,55 @@ export const handleLogout = async (req, res, next) => {
 };
 
 export const handleChangeAvatar = async (req, res, next) => {
-    res.status(200).json(new ApiResponse(200, "Avatar Uploaded Successfully"));
+    const avatarLocalPath = req.file ? req.file.path : "";
+    try {
+        // Get avatar file from request
+
+        // Check if avatar file is empty
+        if (!avatarLocalPath) {
+            throw new ApiError(400, "No avatar file provided");
+        }
+
+        // Find current user
+        const user = await User.findById(req.user._id).select("avatar");
+        if (!user) {
+            throw new ApiError(403, "User Not Found, please login again");
+        }
+
+        // Upload avatar to Cloudinary
+        const newAvatar = await uploadImageToCloud(avatarLocalPath);
+        if (!newAvatar.public_id || !newAvatar.secure_url) {
+            throw new ApiError(400, "Error uploading avatar");
+        }
+
+        // Delete old avatar
+        const result = await deleteCloudFile(user?.avatar?.public_id);
+        if (!result) {
+            await deleteCloudFile(newAvatar.public_id);
+            throw new ApiError(400, "Error deleting old avatar");
+        }
+
+        // Update DB user with new avatar
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            { avatar: newAvatar },
+            { new: true }
+        ).select("avatar");
+
+        res.status(200).json(
+            new ApiResponse(200, "Avatar Uploaded Successfully", updatedUser)
+        );
+    } catch (error) {
+        await deleteLocalFile(avatarLocalPath);
+        console.log("Some Error Occured: ", error);
+        // If the error is already an instance of ApiError, pass it to the error handler
+        if (error instanceof ApiError) {
+            return next(error);
+        }
+
+        // For all other errors, send a generic error message
+        return next(
+            new ApiError(500, "Something went wrong during file upload")
+        );
+    }
 };
