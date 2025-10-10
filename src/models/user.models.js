@@ -107,6 +107,13 @@ const userSchema = new mongoose.Schema(
                     },
                 },
             ],
+
+            subscribed: [
+                {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "User",
+                },
+            ],
         },
 
         // Chef-specific profile (only populated for CHEFs)
@@ -134,6 +141,13 @@ const userSchema = new mongoose.Schema(
                 {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: "Recipe",
+                },
+            ],
+
+            reviews: [
+                {
+                    name: string,
+                    message: string,
                 },
             ],
         },

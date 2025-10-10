@@ -344,7 +344,7 @@ export const handleUpdateProfile = async (req, res, next) => {
             }
         }
 
-        // console.log(updates);
+        console.log(updates);
 
         if (Object.keys(updates).length === 0) {
             return new ApiError(403, "No fields to update");
