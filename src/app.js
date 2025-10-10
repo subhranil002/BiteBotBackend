@@ -3,15 +3,27 @@ import errorMiddleware from "./middlewares/error.middlewares.js";
 import { userRoutes, healthCheckRoutes } from "./routes/index.js";
 import cookieParser from "cookie-parser";
 import recipeRouter from "./routes/recipe.routes.js";
+import constants from "./constants.js";
 import cors from "cors";
 
 const app = express();
 
+
+// cors setup
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (constants.ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    }
+  },
+  credentials: true,
+}
+
 // middlewares
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(cors());
+app.use(cors(corsOptions));
 
 // routes
 app.use("/api/test", healthCheckRoutes);
