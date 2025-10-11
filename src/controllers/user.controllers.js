@@ -5,16 +5,18 @@ import {
     uploadImageToCloud,
     deleteLocalFile,
     deleteCloudFile,
+    isBlankValue,
+    convertToMongoKey
 } from "../utils/index.js";
 
 export const handleRegister = async (req, res, next) => {
     try {
         // get name, email and pw from body
-        const { email, password, profile_name } = req.body;
+        const { email, password, profile_name, profile_cuisine, profile_dietaryLabels } = req.body;
 
         // validate
-        if (!(email && password && profile_name)) {
-            throw new ApiError("All field must be passed", 400);
+        if (!(email && password && profile_name && profile_cuisine)) {
+            throw new ApiError( 400, "All field must be passed");
         }
 
         // Email format validation using regex
@@ -42,7 +44,10 @@ export const handleRegister = async (req, res, next) => {
         // Prepare profile data - only include fields that are provided
         const profileData = {
             name: profile_name,
+            cuisine: profile_cuisine,
         };
+
+        if(profile_dietaryLabels) dietaryLabels = profile_dietaryLabels;
 
         // Create new user object
         const newUser = new User({
@@ -53,19 +58,11 @@ export const handleRegister = async (req, res, next) => {
         });
 
         // Save user to database
-        // const savedUser = await newUser.save();
-        // savedUser.password = undefined;
+        const savedUser = await newUser.save();
+        savedUser.password = undefined;
 
         // token create
         const accessToken = await newUser.generateAccessToken();
-        const refreshToken = await newUser.generateRefreshToken();
-
-        // saving refresh token to db
-        newUser.refreshToken = refreshToken;
-        const savedUser = await newUser.save();
-
-        savedUser.refreshToken = undefined;
-        savedUser.password = undefined;
 
         // send cookie
         res.cookie("accessToken", accessToken, {
@@ -73,11 +70,6 @@ export const handleRegister = async (req, res, next) => {
             secure: true,
             sameSite: "None",
             maxAge: 24 * 60 * 60 * 1000, // 1 day
-        }).cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "None",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 day
         });
 
         // send response
@@ -99,6 +91,7 @@ export const handleRegister = async (req, res, next) => {
         );
     }
 };
+
 export const handleLogin = async (req, res, next) => {
     try {
         // get email and pw from body
@@ -127,13 +120,6 @@ export const handleLogin = async (req, res, next) => {
 
         // token create
         const accessToken = await user.generateAccessToken();
-        const refreshToken = await user.generateRefreshToken();
-
-        // saving refresh token to db
-        user.refreshToken = refreshToken;
-        await user.save();
-
-        user.refreshToken = undefined;
         user.password = undefined;
 
         // send cookie
@@ -142,11 +128,6 @@ export const handleLogin = async (req, res, next) => {
             secure: true,
             sameSite: "None",
             maxAge: 24 * 60 * 60 * 1000, // 1 day
-        }).cookie("refreshToken", refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "None",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 day
         });
 
         // send response
@@ -167,14 +148,7 @@ export const handleLogin = async (req, res, next) => {
 
 export const handleLogout = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user._id);
-        user.refreshToken = undefined;
-        await user.save();
-
         res.clearCookie("accessToken", {
-            httpOnly: true,
-            secure: true,
-        }).clearCookie("refreshToken", {
             httpOnly: true,
             secure: true,
         });
@@ -279,20 +253,17 @@ export const handleChangePassword = async (req, res, next) => {
         );
     }
 };
+
 export const handleResetPassword = async (req, res, next) => {};
 
 export const handleForgetPassword = async (req, res, next) => {};
 
 export const handleGetProfile = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            throw new ApiError(404, "User not found");
-        }
-
+        const user = req.user;
         return res
             .status(200)
-            .json(new ApiResponse(200, "User Profile Data", user));
+            .json(new ApiResponse(200, "Profile Data Fetched Successfully", user));
     } catch (error) {
         // If the error is already an instance of ApiError, pass it to the error handler
         if (error instanceof ApiError) {
@@ -308,22 +279,63 @@ export const handleGetProfile = async (req, res, next) => {
 
 export const handleUpdateProfile = async (req, res, next) => {
     try {
-        const { profile_name } = req.body;
-        if (!profile_name) {
-            throw new ApiError(400, "All fields are required");
+        const userId = req.user.id; // from auth middleware
+        const body = req.body;
+        const updates = {};
+
+        // SECURITY: Whitelist allowed fields only
+        const allowedFields = [
+            "profile_name",
+            "profile_bio",
+            "profile_dietaryLabels",
+            "profile_allergens",
+            "profile_cuisine",
+            "chefProfile_education",
+            "chefProfile_experience",
+            "chefProfile_externalLinks",
+            "chefProfile_subscriptionPrice",
+            "chefProfile_recipes",
+            "favourites",
+        ];
+
+        for (const key in body) {
+            if (body.hasOwnProperty(key)) {
+                // SECURITY: Only process whitelisted fields
+                if (!allowedFields.includes(key)) {
+                    continue; // Skip unauthorized fields
+                }
+
+                // check for blank fields
+                if (isBlankValue(body[key])) {
+                    continue;
+                }
+
+                // Convert to dot notation and add to updates
+                updates[convertToMongoKey(key)] = body[key];
+            }
         }
 
-        const user = await User.findById(req.user._id);
-        if (!user) {
-            throw new ApiError(404, "User does not exist");
+        console.log(updates);
+
+        if (Object.keys(updates).length === 0) {
+            return new ApiError(403, "No fields to update");
         }
 
-        user.profile.name = profile_name;
-        await user.save();
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updates }, // update only required fields
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return new ApiError(403, "No user found");
+        }
 
         return res
             .status(200)
-            .json(new ApiResponse(200, "User updated successfully", user));
+            .json(
+                new ApiResponse(200, "User updated successfully", updatedUser)
+            );
     } catch (error) {
         // If the error is already an instance of ApiError, pass it to the error handler
         if (error instanceof ApiError) {
@@ -332,7 +344,7 @@ export const handleUpdateProfile = async (req, res, next) => {
 
         // For all other errors, send a generic error message
         return next(
-            new ApiError(500, "Something went wrong during file upload")
+            new ApiError(500, "Something went wrong during update")
         );
     }
 };
