@@ -12,7 +12,7 @@ import {
 export const handleRegister = async (req, res, next) => {
     try {
         // get name, email and pw from body
-        const { email, password, profile_name, profile_cuisine, profile_dietryLabels } = req.body;
+        const { email, password, profile_name, profile_cuisine, profile_dietaryLabels } = req.body;
 
         // validate
         if (!(email && password && profile_name && profile_cuisine)) {
@@ -47,7 +47,7 @@ export const handleRegister = async (req, res, next) => {
             cuisine: profile_cuisine,
         };
 
-        if(profile_dietryLabels) dietryLabels = profile_dietryLabels;
+        if(profile_dietaryLabels) dietaryLabels = profile_dietaryLabels;
 
         // Create new user object
         const newUser = new User({
@@ -263,7 +263,7 @@ export const handleGetProfile = async (req, res, next) => {
         const user = req.user;
         return res
             .status(200)
-            .json(new ApiResponse(200, "User Profile Data", user));
+            .json(new ApiResponse(200, "Profile Data Fetched Successfully", user));
     } catch (error) {
         // If the error is already an instance of ApiError, pass it to the error handler
         if (error instanceof ApiError) {
