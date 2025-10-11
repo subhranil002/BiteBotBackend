@@ -12,8 +12,11 @@ const app = express();
 // cors setup
 const corsOptions = {
   origin: function (origin, callback) {
-    if (constants.ALLOWED_ORIGINS.includes(origin)) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin || constants.ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'), false);
     }
   },
   credentials: true,
