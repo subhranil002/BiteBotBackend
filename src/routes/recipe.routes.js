@@ -1,5 +1,4 @@
 import { Router } from "express";
-const recipeRouter = Router();
 import {
     addRecipe,
     getAllRecipes,
@@ -8,9 +7,13 @@ import {
     deleteRecipe,
 } from "../controllers/recipe.controllers.js";
 import { validateRecipe } from "../middlewares/recipe.middlewares.js";
+import { isAuthorized, isLoggedIn } from "../middlewares/auth.middlewares.js";
 
+const recipeRouter = Router();
 // CREATE (with validation)
-recipeRouter.route("/recipes").post(validateRecipe, addRecipe);
+recipeRouter
+    .route("/recipes")
+    .post(isLoggedIn, isAuthorized("CHEF"), validateRecipe, addRecipe);
 
 // READ
 recipeRouter.route("/recipes").get(getAllRecipes);

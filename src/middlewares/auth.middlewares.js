@@ -36,6 +36,17 @@ export const isLoggedIn = async (req, res, next) => {
         }
 
         // For all other errors, send a generic error message
-        return next(new ApiError(455, "Something went wrong!"));
+        return next(new ApiError(455, "Something went wrong during!"));
     }
 };
+
+export const isAuthorized =
+    (...roles) =>
+    async (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return next(
+                new ApiError(403, "You are not authorized to access this route")
+            );
+        }
+        next();
+    };

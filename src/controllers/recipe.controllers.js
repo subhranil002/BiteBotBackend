@@ -4,60 +4,50 @@ import { ApiResponse, ApiError } from "../utils/index.js";
 // CREATE Recipe (Check Required)
 const addRecipe = async (req, res, next) => {
     try {
-        const {
-            title,
-            description,
-            cuisine,
-            totalCookingTime,
-            servings,
-            isPremium,
-            ingredients,
-            steps,
-            dietaryLabels,
-            externalMediaLinks,
-            reviews
-        } = req.body;
+        // const {
+        //     title,
+        //     description,
+        //     cuisine,
+        //     totalCookingTime,
+        //     servings,
+        //     isPremium,
+        //     ingredients,
+        //     steps,
+        //     dietaryLabels,
+        //     externalMediaLinks,
+        //     reviews
+        // } = req.body;
 
         // extract id of chef
-        const chefId = req.user._id;
+        // const chefId = req.user._id;
 
         // verify the recipe object for required fields
-        if (
-            !(
-                title &&
-                description &&
-                cuisine &&
-                totalCookingTime &&
-                servings &&
-                ingredients &&
-                steps &&
-                dietaryLabels
-            )
-        ) {
-            throw new ApiError(400, "All fields are required");
-        }
+        // if (
+        //     !(
+        //         title &&
+        //         description &&
+        //         cuisine &&
+        //         totalCookingTime &&
+        //         servings &&
+        //         ingredients &&
+        //         steps &&
+        //         dietaryLabels
+        //     )
+        // ) {
+        //     throw new ApiError(400, "All fields are required");
+        // }
         // create a new recipe object and save the recipe object to the database
-        const newRecipe = await Recipe.create({
-            title,
-            description,
-            cuisine,
-            chefId,
-            totalCookingTime,
-            servings,
-            isPremium,
-            ingredients,
-            steps,
-            dietaryLabels,
-            externalMediaLinks,
-            reviews
-        });
+
+        const payload = {
+            ...req.body, // all validated, allowed fields
+            chefId: req.user._id, // override or inject server‐set field
+        };
+        const newRecipe = await Recipe.create(payload);
 
         // respond with the newly created recipe object
         return res
             .status(201)
-            .json(
-                new ApiResponse(201, "Recipe added successfully", newRecipe)
-            );
+            .json(new ApiResponse(201, "Recipe added successfully", newRecipe));
     } catch (error) {
         console.log("Some Error Occured: ", error);
         // If the error is already an instance of ApiError, pass it to the error handler

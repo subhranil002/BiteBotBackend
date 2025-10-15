@@ -1,47 +1,91 @@
 import Joi from "joi";
 
 export const validateRecipe = (req, res, next) => {
-  const schema = Joi.object({
-    title: Joi.string().min(3).max(50).required(),
-    description: Joi.string().min(10).required(),
-    chefId: Joi.string().required(), // should be ObjectId
+    try {
+        const schema = Joi.object({
+            title: Joi.string().trim().min(3).max(100).required(),
+            description: Joi.string().trim().min(10).max(1000).required(),
 
-    ingredients: Joi.array().items(
-      Joi.object({
-        name: Joi.string().required(),
-        quantity: Joi.number().positive().required(),
-        unit: Joi.string().required(),
-        marketPrice: Joi.number().positive().required(),
-      })
-    ).min(1).required(),
+            ingredients: Joi.array()
+                .items(
+                    Joi.object({
+                        name: Joi.string().trim().required(),
+                        quantity: Joi.number().positive().required(),
+                        unit: Joi.string().trim().required(),
+                        marketPrice: Joi.number().positive().required(),
+                    })
+                )
+                .min(1)
+                .required(),
 
-    steps: Joi.array().items(
-      Joi.object({
-        stepNo: Joi.number().positive().required(),
-        instruction: Joi.string().required(),
-        imageUrl: Joi.string().uri().optional(), //Needs to change use multer npm package
-      })
-    ).min(1).required(),
+            steps: Joi.array()
+                .items(
+                    Joi.object({
+                        stepNo: Joi.number().integer().positive().required(),
+                        instruction: Joi.string().trim().required(),
+                    })
+                )
+                .min(1)
+                .required(),
 
-    cuisine: Joi.string().optional(),
-    categoryTags: Joi.array().items(Joi.string()).optional(),
-    dietaryLabels: Joi.array().items(Joi.string()).optional(),
-    prepTime: Joi.number().positive().optional(),
-    cookTime: Joi.number().positive().optional(),
-    servings: Joi.number().positive().optional(),
-    externalMediaLinks: Joi.array().items(Joi.string().uri()).optional(),
-    isPremium: Joi.boolean().default(false),
-  });
+            cuisine: Joi.string().trim().required(),
 
-  const { error } = schema.validate(req.body, { abortEarly: false });
+            dietaryLabels: Joi.array()
+                .items(
+                    Joi.string().valid(
+                        "vegetarian",
+                        "vegan",
+                        "keto",
+                        "paleo",
+                        "gluten-free",
+                        "dairy-free",
+                        "low-carb",
+                        "high-protein",
+                        "sugar-free",
+                        "organic",
+                        "raw",
+                        "mediterranean",
+                        "low-fat"
+                    )
+                )
+                .optional(),
 
-  if (error) {
-    return res.status(400).json({
-      success: false,
-      message: "Validation error",
-      details: error.details.map((err) => err.message),
-    });
-  }
+            totalCookingTime: Joi.number().positive().required(),
+            servings: Joi.number().positive().required(),
 
-  next();
+            externalMediaLinks: Joi.array()
+                .items(
+                    Joi.object({
+                        name: Joi.string().trim().required(),
+                        url: Joi.string().uri().required(),
+                    })
+                )
+                .optional(),
+
+            isPremium: Joi.boolean().default(false),
+        });
+
+        const { value, error } = schema.validate(req.body, {
+            abortEarly: false,
+            stripUnknown: true,
+        });
+
+        if (error) {
+            throw new ApiError(400, "Validation failed");
+        }
+
+        req.body = value; // setting sanitized data to req.body
+        next();
+    } catch (error) {
+        console.log("Some Error Occured: ", error);
+        // If the error is already an instance of ApiError, pass it to the error handler
+        if (error instanceof ApiError) {
+            return next(error);
+        }
+
+        // For all other errors, send a generic error message
+        return next(
+            new ApiError(500, "Something went wrong during recipe validation")
+        );
+    }
 };
