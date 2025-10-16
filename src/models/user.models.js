@@ -159,6 +159,27 @@ const userSchema = new mongoose.Schema(
                 ref: "Recipe",
             },
         ],
+
+        reviewsGiven: [
+            {
+                recipeId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "Recipe",
+                },
+                rating: {
+                    type: Number,
+                    min: [1, "Rating must be at least 1"],
+                    max: [5, "Rating must be at most 5"],
+                },
+                message: {
+                    type: String,
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     { timestamps: true }
 );

@@ -12,6 +12,15 @@ const recipeSchema = new mongoose.Schema(
             required: [true, "Description is required"],
         },
 
+         thumbnail: {
+            public_id: {
+                type: String,
+            },
+            secure_url: {
+                type: String,
+            },
+        },
+
         cuisine: {
             type: String,
             required: [true, "Cuisine is required"],
