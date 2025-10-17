@@ -6,17 +6,23 @@ import {
     deleteLocalFile,
     deleteCloudFile,
     isBlankValue,
-    convertToMongoKey
+    convertToMongoKey,
 } from "../utils/index.js";
 
 export const handleRegister = async (req, res, next) => {
     try {
         // get name, email and pw from body
-        const { email, password, profile_name, profile_cuisine, profile_dietaryLabels } = req.body;
+        const {
+            email,
+            password,
+            profile_name,
+            profile_cuisine,
+            profile_dietaryLabels,
+        } = req.body;
 
         // validate
         if (!(email && password && profile_name && profile_cuisine)) {
-            throw new ApiError( 400, "All field must be passed");
+            throw new ApiError(400, "All field must be passed");
         }
 
         // Email format validation using regex
@@ -47,7 +53,8 @@ export const handleRegister = async (req, res, next) => {
             cuisine: profile_cuisine,
         };
 
-        if(profile_dietaryLabels) profileData.dietaryLabels = profile_dietaryLabels;
+        if (profile_dietaryLabels)
+            profileData.dietaryLabels = profile_dietaryLabels;
 
         // Create new user object
         const newUser = new User({
@@ -263,7 +270,9 @@ export const handleGetProfile = async (req, res, next) => {
         const user = req.user;
         return res
             .status(200)
-            .json(new ApiResponse(200, "Profile Data Fetched Successfully", user));
+            .json(
+                new ApiResponse(200, "Profile Data Fetched Successfully", user)
+            );
     } catch (error) {
         // If the error is already an instance of ApiError, pass it to the error handler
         if (error instanceof ApiError) {
@@ -343,26 +352,36 @@ export const handleUpdateProfile = async (req, res, next) => {
         }
 
         // For all other errors, send a generic error message
-        return next(
-            new ApiError(500, "Something went wrong during update")
-        );
+        return next(new ApiError(500, "Something went wrong during update"));
     }
 };
 
 export const handleGetUserById = async (req, res, next) => {
     try {
         const userId = req.params.id;
-        const user = await User.findById(userId);
+
+        // populate function: Instead of just giving the ObjectId, replace it with the actual document from the referenced collection.
+        // This is useful when you want to retrieve a document from a referenced collection and include its fields.
+        const user = await User.findById(userId)
+            .populate("favourites")
+            .populate("profile.subscribed")
+            .populate("chefProfile.recipes")
+            .populate("reviewsGiven.recipeId");
+        
         if (!user) {
             throw new ApiError(404, "User not found");
         }
-        return res.status(200).json(new ApiResponse(200, "User fetched successfully", user));
+        return res
+            .status(200)
+            .json(new ApiResponse(200, "User fetched successfully", user));
     } catch (error) {
         console.log("Some error occured: ", error);
-        
+
         // If the error is already an instance of ApiError, pass it to the error handler
-        error instanceof ApiError 
-            ? next(error) 
-            : next(new ApiError(500, "Something went wrong during fetching user"));
+        error instanceof ApiError
+            ? next(error)
+            : next(
+                  new ApiError(500, "Something went wrong during fetching user")
+              );
     }
 };

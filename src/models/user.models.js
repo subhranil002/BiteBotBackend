@@ -111,7 +111,7 @@ const userSchema = new mongoose.Schema(
             subscribed: [
                 {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "users",
+                    ref: "User",
                 },
             ],
         },
@@ -140,7 +140,7 @@ const userSchema = new mongoose.Schema(
             recipes: [
                 {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "recipes",
+                    ref: "Recipe",
                 },
             ],
 
@@ -156,7 +156,7 @@ const userSchema = new mongoose.Schema(
         favourites: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "recipes",
+                ref: "Recipe",
             },
         ],
 
@@ -164,7 +164,7 @@ const userSchema = new mongoose.Schema(
             {
                 recipeId: {
                     type: mongoose.Schema.Types.ObjectId,
-                    ref: "recipes",
+                    ref: "Recipe",
                 },
                 rating: {
                     type: Number,
