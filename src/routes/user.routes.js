@@ -32,6 +32,6 @@ userRoutes.route("/forget-password").post(handleForgetPassword); //Not implement
 // profile routes
 userRoutes.route("/me").get(isLoggedIn, handleGetProfile);
 userRoutes.route("/update").patch(isLoggedIn, handleUpdateProfile);
-userRoutes.route("/:id").get(isLoggedIn, handleGetUserById);
+userRoutes.route("/:id").get(handleGetUserById);
 
 export default userRoutes;

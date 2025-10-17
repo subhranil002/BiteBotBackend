@@ -29,7 +29,7 @@ const recipeSchema = new mongoose.Schema(
         // need discussion
         chefId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
+            ref: "users",
         },
 
         totalCookingTime: {
@@ -125,7 +125,7 @@ const recipeSchema = new mongoose.Schema(
         likeCount: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
+                ref: "users",
             },
         ]
     },
