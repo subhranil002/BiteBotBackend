@@ -10,21 +10,16 @@ import { validateRecipe } from "../middlewares/recipe.middlewares.js";
 import { isAuthorized, isLoggedIn } from "../middlewares/auth.middlewares.js";
 
 const recipeRouter = Router();
-// CREATE (with validation)
+
 recipeRouter
-    .route("/recipes")
-    .post(isLoggedIn, isAuthorized("CHEF"), validateRecipe, addRecipe);
+    .route("/")
+    .post(isLoggedIn, isAuthorized("CHEF"), validateRecipe, addRecipe)
+    .get(isLoggedIn, getAllRecipes);
 
-// READ
-recipeRouter.route("/recipes").get(isLoggedIn, getAllRecipes);
-
-// when a user clicks on a recipe from the list to view the detailed recipe
-recipeRouter.route("/recipes/:id").get(getRecipeById);
-
-// UPDATE (with validation)
-recipeRouter.route("/recipes/:id").put(validateRecipe, updateRecipe);
-
-// DELETE
-recipeRouter.route("/recipes/:id").delete(deleteRecipe);
+recipeRouter
+    .route("/:id")
+    .get(getRecipeById)
+    .put(validateRecipe, updateRecipe)
+    .delete(deleteRecipe);
 
 export default recipeRouter;

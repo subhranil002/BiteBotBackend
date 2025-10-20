@@ -1,4 +1,5 @@
 import userRoutes from "./user.routes.js";
 import healthCheckRoutes from "./healthCheck.routes.js";
+import chatbotRoutes from "./chatbot.routes.js";
 
-export { userRoutes, healthCheckRoutes };
+export { userRoutes, healthCheckRoutes, chatbotRoutes };
