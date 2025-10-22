@@ -1,9 +1,14 @@
 import { Agent } from "@openai/agents";
 import { z } from "zod";
 import searchRecipesTool from "./searchRecipeTool.js";
-import { readFile } from 'fs/promises';
+import { readFile } from "fs/promises";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
-const FINE_TUNE_DATA = await readFile('./src/ai/FINE_TUNE_DATA_v2.txt', 'utf8');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const filePath = join(__dirname, "FINE_TUNE_DATA_v3.txt");
+const FINE_TUNE_DATA = await readFile(filePath, "utf8");
 
 const OutputSchema = z.object({
     reply: z.string(),
