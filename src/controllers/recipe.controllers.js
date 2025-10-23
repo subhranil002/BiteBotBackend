@@ -110,26 +110,16 @@ const getAllRecipes = async (req, res, next) => {
             pipeline.push({ $match: matchStage });
         }
 
-        // ✅ Add all calculated fields upfront (industry standard)
+        // Add all calculated fields upfront (industry standard)
         pipeline.push({
             $addFields: {
                 // Total ingredient price
                 totalPrice: {
                     $sum: {
                         $map: {
-                            input: "$ingredients",
+                            input: { $ifNull: ["$ingredients", []] },
                             as: "ingredient",
-                            in: {
-                                $multiply: [
-                                    { $ifNull: ["$$ingredient.quantity", 0] },
-                                    {
-                                        $ifNull: [
-                                            "$$ingredient.marketPrice",
-                                            0,
-                                        ],
-                                    },
-                                ],
-                            },
+                            in: { $ifNull: ["$$ingredient.marketPrice", 0] },
                         },
                     },
                 },
@@ -169,8 +159,8 @@ const getAllRecipes = async (req, res, next) => {
         if (filters.rating !== null) {
             pipeline.push({
                 $match: {
-                    avgRating: { $gte: filters.rating }
-                }
+                    avgRating: { $gte: filters.rating },
+                },
             });
         }
 
@@ -181,9 +171,9 @@ const getAllRecipes = async (req, res, next) => {
         } else if (filters.quick) {
             sortStage = { totalCookingTime: 1, createdAt: -1 };
         } else if (filters.fresh) {
-            sortStage = { createdAt: -1 };  
+            sortStage = { createdAt: -1 };
         }
-        
+
         // Add sort stage if conditions exist
         if (Object.keys(sortStage).length > 0) {
             pipeline.push({ $sort: sortStage });

@@ -111,11 +111,11 @@ export const handleLogin = async (req, res, next) => {
 
         // validate if user exists
         let user = await User.findOne({ email })
-        .select("+password")
-        .populate("profile.subscribed")
-        .populate("favourites")
-        .populate("chefProfile.recipes")
-        .populate("reviewsGiven.recipeId");
+            .select("+password")
+            .populate("profile.subscribed")
+            .populate("favourites")
+            .populate("chefProfile.recipes")
+            .populate("reviewsGiven.recipeId");
 
         if (!user) {
             throw new ApiError(
@@ -272,7 +272,12 @@ export const handleForgetPassword = async (req, res, next) => {};
 
 export const handleGetProfile = async (req, res, next) => {
     try {
-        const user = req.user;
+        const user = await User.findById(req.user._id)
+            .populate("favourites")
+            .populate("profile.subscribed")
+            .populate("chefProfile.recipes")
+            .populate("reviewsGiven.recipeId");
+            
         return res
             .status(200)
             .json(
@@ -372,7 +377,7 @@ export const handleGetUserById = async (req, res, next) => {
             .populate("profile.subscribed")
             .populate("chefProfile.recipes")
             .populate("reviewsGiven.recipeId");
-        
+
         if (!user) {
             throw new ApiError(404, "User not found");
         }
