@@ -81,32 +81,30 @@ const userSchema = new mongoose.Schema(
                 },
             ],
 
-            cuisine: [
-                {
-                    type: String,
-                    enum: {
-                        values: [
-                            "indian",
-                            "italian",
-                            "chinese",
-                            "mexican",
-                            "thai",
-                            "japanese",
-                            "french",
-                            "mediterranean",
-                            "american",
-                            "korean",
-                            "vietnamese",
-                            "middle-eastern",
-                            "british",
-                            "spanish",
-                            "german",
-                            "greek",
-                        ],
-                        message: "Invalid cuisine type",
-                    },
+            cuisine: {
+                type: String,
+                enum: {
+                    values: [
+                        "indian",
+                        "italian",
+                        "chinese",
+                        "mexican",
+                        "thai",
+                        "japanese",
+                        "french",
+                        "mediterranean",
+                        "american",
+                        "korean",
+                        "vietnamese",
+                        "middle-eastern",
+                        "british",
+                        "spanish",
+                        "german",
+                        "greek",
+                    ],
+                    message: "Invalid cuisine type",
                 },
-            ],
+            },
 
             subscribed: [
                 {
