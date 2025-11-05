@@ -10,6 +10,7 @@ import {
     HandleGetQuickRecipes,
     HandleGetPremiumRecipes,
     HandleGetRecommendedRecipes,
+    handleLikeUnlikeRecipe
 } from "../controllers/recipe.controllers.js";
 import {
     isSubscribed,
@@ -29,6 +30,8 @@ recipeRouter.route("/fresh").get(HandleGetFreshRecipes);
 recipeRouter.route("/quick").get(HandleGetQuickRecipes);
 recipeRouter.route("/premium").get(HandleGetPremiumRecipes);
 recipeRouter.route("/recommended").get(isLoggedIn, HandleGetRecommendedRecipes);
+
+recipeRouter.route("/like/:id").get(isLoggedIn, handleLikeUnlikeRecipe);
 
 recipeRouter
     .route("/:id")

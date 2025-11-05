@@ -319,7 +319,7 @@ const HandleGetTrendingRecipes = async (req, res, next) => {
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const limit = req.params.limit || 10;
+        const limit = req.query.limit || 10;
 
         const trendingRecipes = await Recipe.aggregate([
             // Only recipes created in last 30 days
@@ -372,6 +372,51 @@ const HandleGetQuickRecipes = async (req, res, next) => {};
 const HandleGetPremiumRecipes = async (req, res, next) => {};
 const HandleGetRecommendedRecipes = async (req, res, next) => {};
 
+const handleLikeUnlikeRecipe = async (req, res, next) => {
+  try {
+    const { id: recipeId } = req.params;
+    const userId = req.user?._id; // from auth middleware
+
+    const recipe = await Recipe.findById(recipeId);
+    if (!recipe) {
+      return next(new ApiError(404, "Recipe not found"));
+    }
+
+    const alreadyLiked = recipe.likeCount?.includes(userId);
+
+    if (alreadyLiked) {
+      // remove like
+      recipe.likeCount.pull(userId);
+    } else {
+      // add like
+      recipe.likeCount.push(userId);
+    }
+
+    await recipe.save();
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        alreadyLiked
+          ? "Like removed successfully"
+          : "Recipe liked successfully",
+        { 
+          recipeId,
+          liked: !alreadyLiked,
+          totalLikes: recipe.likeCount.length
+        }
+      )
+    );
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    return next(
+      error instanceof ApiError
+        ? error
+        : new ApiError(500, "Something went wrong while toggling like")
+    );
+  }
+};
+
 export {
     addRecipe,
     getAllRecipes,
@@ -383,4 +428,5 @@ export {
     HandleGetQuickRecipes,
     HandleGetPremiumRecipes,
     HandleGetRecommendedRecipes,
+    handleLikeUnlikeRecipe
 };
