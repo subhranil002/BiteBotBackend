@@ -319,7 +319,7 @@ const HandleGetTrendingRecipes = async (req, res, next) => {
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const limit = req.query.limit || 10;
+        const limit = Number(req.query.limit) || 10;
 
         const trendingRecipes = await Recipe.aggregate([
             // Only recipes created in last 30 days
@@ -367,54 +367,122 @@ const HandleGetTrendingRecipes = async (req, res, next) => {
         );
     }
 };
-const HandleGetFreshRecipes = async (req, res, next) => {};
-const HandleGetQuickRecipes = async (req, res, next) => {};
+const HandleGetFreshRecipes = async (req, res, next) => {
+    try {
+        const limit = Number(req.query.limit) || 10;
+
+        const freshRecipes = await Recipe.aggregate([
+            {
+                $sort: { createdAt: -1 }, // newest first
+            },
+            { $limit: limit },
+        ]);
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    "Fresh & New recipes fetched successfully",
+                    freshRecipes
+                )
+            );
+    } catch (error) {
+        console.error("Error fetching fresh recipes:", error);
+
+        return next(
+            error instanceof ApiError
+                ? error
+                : new ApiError(
+                      500,
+                      "Something went wrong fetching fresh recipes"
+                  )
+        );
+    }
+};
+const HandleGetQuickRecipes = async (req, res, next) => {
+    try {
+        const limit = Number(req.query.limit) || 10;
+        const maxTime = Number(req.query.maxTime) || 30; // default 30 min
+
+        const quickRecipes = await Recipe.aggregate([
+            {
+                $match: {
+                    totalCookingTime: { $lte: maxTime },
+                },
+            },
+            
+            { $limit: limit },
+        ]);
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(
+                    200,
+                    "Quick & Easy recipes fetched successfully",
+                    quickRecipes
+                )
+            );
+    } catch (error) {
+        console.error("Error fetching quick recipes:", error);
+
+        return next(
+            error instanceof ApiError
+                ? error
+                : new ApiError(
+                      500,
+                      "Something went wrong fetching quick recipes"
+                  )
+        );
+    }
+};
 const HandleGetPremiumRecipes = async (req, res, next) => {};
 const HandleGetRecommendedRecipes = async (req, res, next) => {};
 
 const handleLikeUnlikeRecipe = async (req, res, next) => {
-  try {
-    const { id: recipeId } = req.params;
-    const userId = req.user?._id; // from auth middleware
+    try {
+        const { id: recipeId } = req.params;
+        const userId = req.user?._id; // from auth middleware
 
-    const recipe = await Recipe.findById(recipeId);
-    if (!recipe) {
-      return next(new ApiError(404, "Recipe not found"));
-    }
-
-    const alreadyLiked = recipe.likeCount?.includes(userId);
-
-    if (alreadyLiked) {
-      // remove like
-      recipe.likeCount.pull(userId);
-    } else {
-      // add like
-      recipe.likeCount.push(userId);
-    }
-
-    await recipe.save();
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        alreadyLiked
-          ? "Like removed successfully"
-          : "Recipe liked successfully",
-        { 
-          recipeId,
-          liked: !alreadyLiked,
-          totalLikes: recipe.likeCount.length
+        const recipe = await Recipe.findById(recipeId);
+        if (!recipe) {
+            return next(new ApiError(404, "Recipe not found"));
         }
-      )
-    );
-  } catch (error) {
-    console.error("Error toggling like:", error);
-    return next(
-      error instanceof ApiError
-        ? error
-        : new ApiError(500, "Something went wrong while toggling like")
-    );
-  }
+
+        const alreadyLiked = recipe.likeCount?.includes(userId);
+
+        if (alreadyLiked) {
+            // remove like
+            recipe.likeCount.pull(userId);
+        } else {
+            // add like
+            recipe.likeCount.push(userId);
+        }
+
+        await recipe.save();
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                alreadyLiked
+                    ? "Like removed successfully"
+                    : "Recipe liked successfully",
+                {
+                    recipeId,
+                    liked: !alreadyLiked,
+                    totalLikes: recipe.likeCount.length,
+                }
+            )
+        );
+    } catch (error) {
+        console.error("Error toggling like:", error);
+        return next(
+            error instanceof ApiError
+                ? error
+                : new ApiError(500, "Something went wrong while toggling like")
+        );
+    }
 };
 
 export {
@@ -428,5 +496,5 @@ export {
     HandleGetQuickRecipes,
     HandleGetPremiumRecipes,
     HandleGetRecommendedRecipes,
-    handleLikeUnlikeRecipe
+    handleLikeUnlikeRecipe,
 };
