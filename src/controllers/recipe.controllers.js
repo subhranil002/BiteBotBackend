@@ -207,15 +207,19 @@ const getAllRecipes = async (req, res, next) => {
 // READ Single Recipe (OK)
 const getRecipeById = async (req, res, next) => {
     try {
-        const recipe = await Recipe.findById(req.params.id).populate("chefId");
+        const recipe = await Recipe.findById(req.params.id)
+        .populate("chefId");
 
         if (!recipe) {
             throw new ApiError(404, "Recipe not found");
         }
 
         // Premium Access Logic
-        const chefId = recipe.chefId._id.toString(); // populated, so take _id
-        const userId = req.user._id.toString();
+        const chefId = recipe.chefId._id
+            ? recipe.chefId._id.toString()
+            : recipe.chefId.toString();
+
+        const userId = req.user?._id?.toString();
 
         // Allow access if user is the chef (recipe owner)
         const isOwner = userId === chefId;
@@ -224,12 +228,13 @@ const getRecipeById = async (req, res, next) => {
         const isSubscribed = req.user.profile.subscribed
             .map((id) => id.toString())
             .includes(chefId);
-        
 
         if (recipe.isPremium && !isOwner && !isSubscribed) {
+            console.log(chefId);
             throw new ApiError(
                 403,
-                "Access denied: You need to subscribe to this chef to view premium recipes"
+                "Access denied: Premium Subscription Required",
+                chefId
             );
         }
 
@@ -238,14 +243,13 @@ const getRecipeById = async (req, res, next) => {
             .json(new ApiResponse(200, "Recipe found", recipe));
     } catch (error) {
         console.log("Some Error Occured: ", error);
-        // If the error is already an instance of ApiError, pass it to the error handler
-        if (error instanceof ApiError) {
-            return next(error);
-        }
-
-        // For all other errors, send a generic error message
         return next(
-            new ApiError(500, "Something went wrong during fetching recipe")
+            error instanceof ApiError
+                ? error
+                : new ApiError(
+                      500,
+                      "Something went wrong during fetching recipe"
+                  )
         );
     }
 };
