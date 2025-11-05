@@ -207,17 +207,26 @@ const getAllRecipes = async (req, res, next) => {
 // READ Single Recipe (OK)
 const getRecipeById = async (req, res, next) => {
     try {
-        const recipe = await Recipe.findById(req.params.id)
-            // .populate("chefId");
-            
+        const recipe = await Recipe.findById(req.params.id).populate("chefId");
+
         if (!recipe) {
             throw new ApiError(404, "Recipe not found");
         }
+
+        // Premium Access Logic
+        const chefId = recipe.chefId._id.toString(); // populated, so take _id
+        const userId = req.user._id.toString();
+
+        // Allow access if user is the chef (recipe owner)
+        const isOwner = userId === chefId;
+
+        // Check if user subscribed to chef
+        const isSubscribed = req.user.profile.subscribed
+            .map((id) => id.toString())
+            .includes(chefId);
         
-        if (
-            recipe.isPremium &&
-            !req.user.profile.subscribed.includes(recipe.chefId)
-        ) {
+
+        if (recipe.isPremium && !isOwner && !isSubscribed) {
             throw new ApiError(
                 403,
                 "Access denied: You need to subscribe to this chef to view premium recipes"
