@@ -37,6 +37,12 @@ export const uploadImageToCloud = async (localFilePath) => {
                 `File is empty or corrupted: ${localFilePath}`
             );
         }
+        console.log("=== Upload Debug Info ===");
+        console.log("File Path:", localFilePath);
+        console.log("File Exists:", fs.existsSync(localFilePath));
+        console.log("File Size:", stats.size);
+        console.log("File MIME:", mime.lookup(localFilePath));
+        console.log("==========================");
         // Upload image
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "image",
