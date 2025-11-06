@@ -4,9 +4,9 @@ import {
     userRoutes,
     healthCheckRoutes,
     chatbotRoutes,
+    recipeRoutes,
 } from "./routes/index.js";
 import cookieParser from "cookie-parser";
-import recipeRouter from "./routes/recipe.routes.js";
 import constants from "./constants.js";
 import cors from "cors";
 
@@ -27,7 +27,7 @@ app.use(cors(corsOptions));
 // routes
 app.use("/api/test", healthCheckRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/recipes", recipeRouter);
+app.use("/api/recipes", recipeRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
 // handling all other incorrect routes

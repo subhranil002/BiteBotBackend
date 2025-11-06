@@ -13,30 +13,29 @@ import {
     handleLikeUnlikeRecipe
 } from "../controllers/recipe.controllers.js";
 import {
-    isSubscribed,
     validateRecipe,
 } from "../middlewares/recipe.middlewares.js";
 import { isAuthorized, isLoggedIn } from "../middlewares/auth.middlewares.js";
 
-const recipeRouter = Router();
+const recipeRoutes = Router();
 
-recipeRouter
+recipeRoutes
     .route("/")
     .post(isLoggedIn, isAuthorized("CHEF"), validateRecipe, addRecipe)
     .get(getAllRecipes);
 
-recipeRouter.route("/trending").get(HandleGetTrendingRecipes);
-recipeRouter.route("/fresh").get(HandleGetFreshRecipes);
-recipeRouter.route("/quick").get(HandleGetQuickRecipes);
-recipeRouter.route("/premium").get(HandleGetPremiumRecipes);
-recipeRouter.route("/recommended").get(isLoggedIn, HandleGetRecommendedRecipes);
+recipeRoutes.route("/trending").get(HandleGetTrendingRecipes);
+recipeRoutes.route("/fresh").get(HandleGetFreshRecipes);
+recipeRoutes.route("/quick").get(HandleGetQuickRecipes);
+recipeRoutes.route("/premium").get(HandleGetPremiumRecipes);
+recipeRoutes.route("/recommended").get(isLoggedIn, HandleGetRecommendedRecipes);
 
-recipeRouter.route("/like/:id").get(isLoggedIn, handleLikeUnlikeRecipe);
+recipeRoutes.route("/like/:id").get(isLoggedIn, handleLikeUnlikeRecipe);
 
-recipeRouter
+recipeRoutes
     .route("/:id")
     .get(isLoggedIn, getRecipeById)
     .put(validateRecipe, updateRecipe)
     .delete(deleteRecipe);
 
-export default recipeRouter;
+export default recipeRoutes;

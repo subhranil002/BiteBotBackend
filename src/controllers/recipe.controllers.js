@@ -533,6 +533,7 @@ const handleLikeUnlikeRecipe = async (req, res, next) => {
             user.favourites.push(recipeId);
         }
 
+        // concurrent save instead of sequential
         await Promise.all([recipe.save(), user.save()]);
 
         return res.status(200).json(

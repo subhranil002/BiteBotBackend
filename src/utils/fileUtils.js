@@ -23,7 +23,7 @@ export const deleteLocalFile = async (localFilePath) => {
 export const uploadImageToCloud = async (localFilePath) => {
     // Check if localFilePath is empty
     if (!localFilePath) return null;
-
+    
     try {
         // Upload image
         const response = await cloudinary.uploader.upload(localFilePath, {
