@@ -23,13 +23,26 @@ export const deleteLocalFile = async (localFilePath) => {
 export const uploadImageToCloud = async (localFilePath) => {
     // Check if localFilePath is empty
     if (!localFilePath) return null;
-    
+
     try {
+        // Validate file existence
+        if (!fs.existsSync(localFilePath)) {
+            throw new ApiError(400, `File not found: ${localFilePath}`);
+        }
+
+        const stats = fs.statSync(localFilePath);
+        if (stats.size === 0) {
+            throw new ApiError(
+                400,
+                `File is empty or corrupted: ${localFilePath}`
+            );
+        }
         // Upload image
         const response = await cloudinary.uploader.upload(localFilePath, {
             resource_type: "image",
             // moderation: constants.CLOUDINARY_IMAGE_MODERATION,
             folder: "uploads/images", // organize in Cloudinary
+            allowed_formats: ["jpg", "jpeg", "png", "webp"],
         });
 
         // Delete local files
