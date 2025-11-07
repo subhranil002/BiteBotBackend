@@ -1,6 +1,6 @@
 import { tool } from "@openai/agents";
 import { z } from "zod";
-import { Recipe } from "../models/recipe.models.js";
+import Recipe from "../models/recipe.models.js";
 
 // Utility function to escape special characters for use in regular expressions
 function escapeRegex(text = "") {

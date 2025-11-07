@@ -1,5 +1,6 @@
-import { Recipe } from "../models/recipe.models.js";
+import Recipe from "../models/recipe.models.js";
 import { ApiResponse, ApiError } from "../utils/index.js";
+import User from "../models/user.models.js";
 
 // CREATE Recipe
 const addRecipe = async (req, res, next) => {
@@ -474,25 +475,61 @@ const HandleGetPremiumRecipes = async (req, res, next) => {
 };
 const HandleGetRecommendedRecipes = async (req, res, next) => {
     try {
+        // Get the logged-in user's ID from auth middleware
+        const userId = req.user?._id;
+
+        // Find the user in DB to access their preferences
+        const user = await User.findById(userId)
+            .select("profile.cuisine profile.dietaryLabels")
+            .lean();
+
+        if (!user) {
+            return next(new ApiError(404, "User not found"));
+        }
+
+        // Extract preferred cuisine and dietary labels from user profile
+        const { cuisine, dietaryLabels } = user.profile || {};
+
+        // Create an empty filter object that we’ll fill dynamically
+        const matchStage = {};
+
+        // If user has a preferred cuisine, we match recipes by cuisine name.
+        // Using regex makes it case-insensitive and allows partial matches.
+        if (cuisine) {
+            matchStage.cuisine = { $regex: new RegExp(cuisine, "i") };
+        }
+
+        // If user has dietary preferences, we use $in to find recipes
+        // that contain any of those dietary labels.
+        if (dietaryLabels && dietaryLabels.length > 0) {
+            matchStage.dietaryLabels = { $in: dietaryLabels };
+        }
+
+        // Limit the number of recipes returned (default 10)
         const limit = Number(req.query.limit) || 10;
-        const maxTime = Number(req.query.maxTime) || 30; // default 30 min
 
+        console.log("MatchStage: ", matchStage);
+        console.log("Uyser pref: ", cuisine, dietaryLabels);
+
+        // The aggregation pipeline starts here
         const recommendedRecipes = await Recipe.aggregate([
-            {
-                $match: {
-                    totalCookingTime: { $lte: maxTime },
-                },
-            },
+            // Step 1: Filter recipes based on user's preferences (cuisine/dietary)
+            { $match: matchStage },
 
+            // Step 2: Sort recipes by creation date (latest first)
+            { $sort: { createdAt: -1 } },
+
+            // Step 3: Limit results to a certain number (for performance)
             { $limit: limit },
         ]);
 
+        // Send success response
         return res
             .status(200)
             .json(
                 new ApiResponse(
                     200,
-                    "Quick & Easy recipes fetched successfully",
+                    "Recommended recipes fetched successfully",
                     recommendedRecipes
                 )
             );
@@ -514,7 +551,6 @@ const handleLikeUnlikeRecipe = async (req, res, next) => {
     try {
         const { id: recipeId } = req.params;
         const user = req.user; // from auth middleware
-        
 
         const recipe = await Recipe.findById(recipeId);
         if (!recipe) {
