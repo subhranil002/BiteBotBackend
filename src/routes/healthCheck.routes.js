@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { handleDbPing, handleHealthCheck } from "../controllers/healthCheck.controller.js";
+import {
+    handleDbPing,
+    handleHealthCheck,
+} from "../controllers/healthCheck.controller.js";
 
 const healthCheckRoutes = Router();
 
@@ -7,6 +10,6 @@ const healthCheckRoutes = Router();
 healthCheckRoutes.route("/").get(handleHealthCheck);
 
 // db ping route
-healthCheckRoutes.route("/db-ping",).get(handleDbPing);
+healthCheckRoutes.route("/db-ping").get(handleDbPing);
 
 export default healthCheckRoutes;

@@ -19,16 +19,16 @@ const corsOptions = {
 };
 
 // middlewares
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.use(express.json()); // to handle json data
+app.use(express.urlencoded({ extended: true })); // to handle url encoded data like form data
+app.use(cookieParser()); // to handle cookies
 app.use(cors(corsOptions));
 
 // routes
-app.use("/api/test", healthCheckRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/recipes", recipeRoutes);
-app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/test", healthCheckRoutes); // health check routes
+app.use("/api/user", userRoutes); // user routes
+app.use("/api/recipes", recipeRoutes); // recipe routes
+app.use("/api/chatbot", chatbotRoutes); // chatbot routes
 
 // handling all other incorrect routes
 app.all(/./, (req, res) => {
