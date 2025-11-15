@@ -403,6 +403,9 @@ const HandleGetFreshRecipes = async (req, res, next) => {
 };
 const HandleGetQuickRecipes = async (req, res, next) => {
     try {
+        // track time in minutes
+        // sort by totalCookingTime ascending
+        // default maxTime 30 mins
         const limit = Number(req.query.limit) || 10;
         const maxTime = Number(req.query.maxTime) || 30; // default 30 min
 
