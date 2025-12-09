@@ -57,15 +57,15 @@ export const uploadImageToCloud = async (localFilePath) => {
         await deleteLocalFile(localFilePath);
 
         // paid feature
-        if (
-            response?.moderation?.length > 0 &&
-            response?.moderation[0]?.status === "rejected"
-        ) {
-            throw new ApiError(
-                400,
-                "This image is not safe to upload, please upload a different image"
-            );
-        }
+        // if (
+        //     response?.moderation?.length > 0 &&
+        //     response?.moderation[0]?.status === "rejected"
+        // ) {
+        //     throw new ApiError(
+        //         400,
+        //         "This image is not safe to upload, please upload a different image"
+        //     );
+        // }
 
         // Return public_id and secure_url
         return {
