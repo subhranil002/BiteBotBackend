@@ -46,6 +46,7 @@ export const uploadImageToCloud = async (localFilePath) => {
             // cloud_name: constants.CLOUDINARY_CLOUD_NAME,
             // api_key: constants.CLOUDINARY_API_KEY,
             // api_secret: constants.CLOUDINARY_SECRET,
+            upload_preset: "my_signed_preset",
             resource_type: "image",
             // moderation: constants.CLOUDINARY_IMAGE_MODERATION,
             folder: "uploads/images", // organize in Cloudinary
