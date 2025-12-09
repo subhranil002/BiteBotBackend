@@ -93,7 +93,7 @@ const addRecipe = async (req, res, next) => {
             externalMediaLinks: externalMediaLinks || [],
             isPremium,
             thumbnail,
-            chef: req.user?._id,
+            chefId: req.user?._id,
         };
 
         /** ============================
