@@ -1,5 +1,5 @@
-import { v2 as cloudinary } from "cloudinary";
-import cloudinaryConfig from "../configs/cloudinary.configs.js";
+// import { v2 as cloudinary } from "cloudinary";
+import {cloudinary} from "../configs/cloudinary.configs.js";
 import fs from "fs";
 import path from "path";
 import constants from "../constants.js";
@@ -37,9 +37,9 @@ export const uploadImageToCloud = async (localFilePath) => {
         console.log("==========================");
 
         // console.log(cloudinary.config())
-        console.log("Cloud Name: ", constants.CLOUDINARY_CLOUD_NAME);
-        console.log("Cloud Key: ", constants.CLOUDINARY_API_KEY);
-        console.log("Cloud Secret: ", constants.CLOUDINARY_SECRET);
+        // console.log("Cloud Name: ", constants.CLOUDINARY_CLOUD_NAME);
+        // console.log("Cloud Key: ", constants.CLOUDINARY_API_KEY);
+        // console.log("Cloud Secret: ", constants.CLOUDINARY_SECRET);
 
         // Upload image
         const response = await cloudinary.uploader.upload(localFilePath, {

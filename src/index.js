@@ -1,7 +1,7 @@
 import app from "./app.js";
 import constants from "./constants.js";
 import connectToDb from "./configs/mongoDB.configs.js";
-import connectToCloudinary from "./configs/cloudinary.configs.js";
+import { connectToCloudinary } from "./configs/cloudinary.configs.js";
 
 const port = constants.PORT || 5000;
 
