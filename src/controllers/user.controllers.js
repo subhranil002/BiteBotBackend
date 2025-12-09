@@ -3,7 +3,7 @@ import {
     ApiResponse,
     ApiError,
     uploadImageToCloud,
-    deleteLocalFile,
+    deleteLocalFiles,
     deleteCloudFile,
     isBlankValue,
     convertToMongoKey,
@@ -221,7 +221,7 @@ export const handleChangeAvatar = async (req, res, next) => {
             new ApiResponse(200, "Avatar Uploaded Successfully", updatedUser)
         );
     } catch (error) {
-        await deleteLocalFile(avatarLocalPath);
+        await deleteLocalFiles(avatarLocalPath);
         console.log("Some Error Occured: ", error);
         // If the error is already an instance of ApiError, pass it to the error handler
         if (error instanceof ApiError) {

@@ -1,5 +1,5 @@
 import Recipe from "../models/recipe.models.js";
-import { ApiResponse, ApiError, uploadImageToCloud } from "../utils/index.js";
+import { ApiResponse, ApiError, uploadImageToCloud, deleteLocalFiles } from "../utils/index.js";
 import User from "../models/user.models.js";
 
 // CREATE Recipe
@@ -8,8 +8,11 @@ const addRecipe = async (req, res, next) => {
         /** ============================
          * 1️⃣ Extract files
          * ============================ */
-        const thumbnailFile = req.files?.thumbnailFile?.[0] || null;
+        // const thumbnailFile = req.files?.thumbnailFile?.[0] || null;
+        // const stepImagesFiles = req.files?.stepImages || [];
+        const thumbnailFile = req.files?.thumbnailFile?.[0];
         const stepImagesFiles = req.files?.stepImages || [];
+        console.log("Got files : ", thumbnailFile, stepImagesFiles);
 
         /** ============================
          * 2️⃣ Extract sanitized body
@@ -62,9 +65,15 @@ const addRecipe = async (req, res, next) => {
         /** ============================
          * 5️⃣ Upload Step Images
          * ============================ */
-        const uploadedSteps = await Promise.all(
-            stepImagesFiles.map((file) => uploadImageToCloud(file.path))
-        );
+        const uploadedSteps = [];
+
+        for (const file of stepImagesFiles) {
+            const result = await uploadImageToCloud(file.path);
+            uploadedSteps.push(result);
+        }
+
+        await deleteLocalFiles();
+        console.log("File cleanup Success");
 
         /** ============================
          * 6️⃣ Merge steps + image URLs
@@ -104,8 +113,8 @@ const addRecipe = async (req, res, next) => {
         return res
             .status(201)
             .json(new ApiResponse(201, "Recipe created successfully", recipe));
-
     } catch (error) {
+        await deleteLocalFiles();
         console.log("Some Error Occured: ", error);
 
         if (error instanceof ApiError) {
@@ -117,7 +126,6 @@ const addRecipe = async (req, res, next) => {
         );
     }
 };
-
 
 // READ All Recipes (Not in used)
 const getAllRecipes = async (req, res, next) => {
@@ -494,8 +502,8 @@ const HandleGetFreshRecipes = async (req, res, next) => {
 const HandleGetQuickRecipes = async (req, res, next) => {
     try {
         const limit = Number(req.query.limit) || 10;
-        const maxTime = Number(req.query.maxTime); 
-        
+        const maxTime = Number(req.query.maxTime);
+
         const pipeline = [];
 
         // If maxTime is sent from frontend → apply filter
