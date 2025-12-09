@@ -1,7 +1,7 @@
 import app from "./app.js";
 import constants from "./constants.js";
 import connectToDb from "./configs/mongoDB.configs.js";
-// import { connectToCloudinary } from "./configs/cloudinary.configs.js";
+import connectToCloudinary from "./configs/cloudinary.configs.js";
 
 const port = constants.PORT || 5000;
 
@@ -9,14 +9,14 @@ const port = constants.PORT || 5000;
 connectToDb().then(() => {
     // If db connected then try to connect to cloudinary
     // The server will start though clodianry failed to connect
-    // connectToCloudinary().finally(() => {
-    //     // starting the server
-    //     app.listen(port, () =>
-    //         console.log(`Server is running. URL: http://localhost:${port}`)
-    //     );
-    // });
+    connectToCloudinary().finally(() => {
+        // starting the server
+        app.listen(port, () =>
+            console.log(`Server is running. URL: http://localhost:${port}`)
+        );
+    });
 
-    app.listen(port, () =>
-        console.log(`Server is running. URL: http://localhost:${port}`)
-    );
+    // app.listen(port, () =>
+    //     console.log(`Server is running. URL: http://localhost:${port}`)
+    // );
 });

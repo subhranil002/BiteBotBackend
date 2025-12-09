@@ -1,5 +1,5 @@
-// import { v2 as cloudinary } from "cloudinary";
-import cloudinary from "../configs/cloudinary.configs.js";
+import { v2 as cloudinary } from "cloudinary";
+// import cloudinary from "../configs/cloudinary.configs.js";
 import fs from "fs";
 import path from "path";
 import constants from "../constants.js";
@@ -48,7 +48,7 @@ export const uploadImageToCloud = async (localFilePath) => {
             // api_secret: constants.CLOUDINARY_SECRET,
             // upload_preset: "my_signed_preset",
             resource_type: "image",
-            // moderation: constants.CLOUDINARY_IMAGE_MODERATION,
+            moderation: constants.CLOUDINARY_IMAGE_MODERATION,
             // folder: "uploads/images", // organize in Cloudinary
             // allowed_formats: ["jpg", "jpeg", "png", "webp"],
         });
@@ -57,15 +57,15 @@ export const uploadImageToCloud = async (localFilePath) => {
         await deleteLocalFile(localFilePath);
 
         // paid feature
-        // if (
-        //     response?.moderation?.length > 0 &&
-        //     response?.moderation[0]?.status === "rejected"
-        // ) {
-        //     throw new ApiError(
-        //         400,
-        //         "This image is not safe to upload, please upload a different image"
-        //     );
-        // }
+        if (
+            response?.moderation?.length > 0 &&
+            response?.moderation[0]?.status === "rejected"
+        ) {
+            throw new ApiError(
+                400,
+                "This image is not safe to upload, please upload a different image"
+            );
+        }
 
         // Return public_id and secure_url
         return {
