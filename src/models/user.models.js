@@ -214,6 +214,18 @@ userSchema.methods.generateAccessToken = async function () {
     );
 };
 
+userSchema.methods.generateRefreshToken = async function () {
+    return jwt.sign(
+        {
+            _id: this._id,
+        },
+        constants.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: constants.REFRESH_TOKEN_EXPIRY,
+        }
+    );
+};
+
 const User = mongoose.model("User", userSchema);
 
 export default User;
