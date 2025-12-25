@@ -3,6 +3,73 @@ import User from "../models/user.models.js";
 import { ApiError, ApiResponse } from "../utils/index.js";
 import constants from "../constants.js";
 
+const refreshAccessToken = async (req, res, next) => {
+    try {
+        const { refreshToken } = req.cookies;
+
+        // if refresh token is not present, throw an error
+        if (!refreshToken) {
+            // throw new ApiError("Refresh token not found", 455);
+            throw new ApiError(455, "No Session Found! Please login again");
+        }
+
+        const decodedRefreshToken = jwt.verify(
+            refreshToken,
+            constants.REFRESH_TOKEN_SECRET,
+            (err, decoded) => {
+                if (err) {
+                    throw new ApiError(
+                        455,
+                        "Refresh Token is invalid or expired"
+                    );
+                }
+                return decoded;
+            }
+        );
+
+        const user = await User.findById(decodedRefreshToken?._id);
+        if (!user) {
+            throw new ApiError(455, "User not found");
+        }
+
+        // Check db refresh token with cookie refresh token
+        if (user.refreshToken !== refreshToken) {
+            throw new ApiError(455, "Refresh Token is invalid or expired");
+        }
+
+        // generate new access and refresh token
+        const accessToken = await user.generateAccessToken();
+        const newRefreshToken = await user.generateRefreshToken();
+
+        user.refreshToken = newRefreshToken;
+        await user.save();
+        req.user = user;
+
+        res.cookie("accessToken", accessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        }).cookie("refreshToken", newRefreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+        next();
+    } catch (error) {
+        console.log("Some error occured: ", error);
+
+        // If the error is already an instance of ApiError, pass it to the error handler
+        error instanceof ApiError
+            ? next(error)
+            : next(
+                  new ApiError(500, "Something went wrong during validating user tokens")
+              );
+    }
+};
+
 export const isLoggedIn = async (req, res, next) => {
     try {
         // get the token from cookie
@@ -13,30 +80,44 @@ export const isLoggedIn = async (req, res, next) => {
             throw new ApiError(455, "Not logged in");
         }
 
-        // decode token
-        const payload = jwt.verify(accessToken, constants.ACCESS_TOKEN_SECRET);
+        // Check if access token is valid
+        try {
+            const decodedAccessToken = jwt.verify(
+                accessToken,
+                constants.ACCESS_TOKEN_SECRET,
+                (err, decoded) => {
+                    if (err) {
+                        throw new ApiError(
+                            455,
+                            "Access Token is invalid or expired"
+                        );
+                    }
+                    return decoded;
+                }
+            );
 
-        // finding user on db based on decoded token data
-        const user = await User.findOne({ _id: payload._id });
+            // Check if user is verified
+            const user = await User.findById(decodedAccessToken?._id);
+            if (!user) {
+                throw new ApiError(455, "User not found");
+            }
 
-        // validate user
-        if (!user) {
-            throw new ApiError(455, "Not logged in");
+            // Set user in request
+            req.user = user;
+
+            next();
+        } catch (error) {
+            await refreshAccessToken(req, res, next);
         }
-
-        // if user exist then setting up req.user obj to pass to handler
-        req.user = user;
-
-        return next();
     } catch (error) {
-        console.log("Some Error Occured: ", error);
-        // If the error is already an instance of ApiError, pass it to the error handler
-        if (error instanceof ApiError) {
-            return next(error);
-        }
+        console.log("Some error occured: ", error);
 
-        // For all other errors, send a generic error message
-        return next(new ApiError(455, "Something went wrong during!"));
+        // If the error is already an instance of ApiError, pass it to the error handler
+        error instanceof ApiError
+            ? next(error)
+            : next(
+                  new ApiError(500, "Something went wrong during validating user tokens")
+              );
     }
 };
 
