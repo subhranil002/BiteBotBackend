@@ -57,7 +57,7 @@ export const handleRegister = async (req, res, next) => {
             profileData.dietaryLabels = profile_dietaryLabels;
 
         // Create new user object
-        const newUser = new User.create({
+        const newUser = await User.create({
             email: email.toLowerCase(),
             password: password,
             profile: profileData,
