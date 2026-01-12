@@ -1,6 +1,40 @@
 import Joi from "joi";
 import ApiError from "../utils/ApiError.js";
 
+const DIETARY_LABELS = [
+    "vegetarian",
+    "vegan",
+    "keto",
+    "paleo",
+    "gluten-free",
+    "dairy-free",
+    "low-carb",
+    "high-protein",
+    "sugar-free",
+    "organic",
+    "raw",
+    "mediterranean",
+    "low-fat",
+];
+
+const ALLERGENS = [
+    "Peanuts",
+    "Tree Nuts",
+    "Milk",
+    "Egg",
+    "Wheat",
+    "Soy",
+    "Fish",
+    "Shellfish",
+    "Sesame",
+    "Mustard",
+    "Celery",
+    "Lupin",
+    "Sulfites",
+    "Molluscs",
+    "Corn",
+];
+
 export const validateUpdateProfile = (req, res, next) => {
     const schema = Joi.object({
         name: Joi.string().trim().min(2).max(50).optional(),
@@ -8,19 +42,20 @@ export const validateUpdateProfile = (req, res, next) => {
         bio: Joi.string().trim().allow("").max(300).optional(),
 
         dietaryLabels: Joi.array()
-            .items(Joi.string().valid("vegetarian", "vegan", "halal", "kosher"))
+            .items(Joi.string().valid(...DIETARY_LABELS))
             .optional(),
 
-        allergens: Joi.array().items(Joi.string()).optional(),
+        allergens: Joi.array()
+        .items(Joi.string.valid(...ALLERGENS))
+        .optional(),
 
         cuisine: Joi.string().trim().optional(),
-    })
-        .min(1) // At least one field required
-        .unknown(false); // Reject extra fields
+    }).min(1); // At least one field required
 
     const { error, value } = schema.validate(req.body, {
         abortEarly: false,
-        stripUnknown: false, // important: THROW error, don't silently strip
+        allowUnknown: true, // allow unknown fields
+        stripUnknown: true, // important: silently strip
     });
 
     if (error) {

@@ -416,17 +416,17 @@ const deleteRecipe = async (req, res, next) => {
 
 const HandleGetTrendingRecipes = async (req, res, next) => {
     try {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        // const thirtyDaysAgo = new Date();
+        // thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const limit = Number(req.query.limit) || 10;
 
         const trendingRecipes = await Recipe.aggregate([
             // Only recipes created in last 30 days
-            {
-                $match: {
-                    createdAt: { $gte: thirtyDaysAgo },
-                },
-            },
+            // {
+            //     $match: {
+            //         createdAt: { $gte: thirtyDaysAgo },
+            //     },
+            // },
 
             // Compute like count
             {

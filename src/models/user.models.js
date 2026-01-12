@@ -78,6 +78,26 @@ const userSchema = new mongoose.Schema(
             allergens: [
                 {
                     type: String,
+                    enum: {
+                        values: [
+                            "Peanuts",
+                            "Tree Nuts",
+                            "Milk",
+                            "Egg",
+                            "Wheat",
+                            "Soy",
+                            "Fish",
+                            "Shellfish",
+                            "Sesame",
+                            "Mustard",
+                            "Celery",
+                            "Lupin",
+                            "Sulfites",
+                            "Molluscs",
+                            "Corn",
+                        ],
+                        message: "Invalid Allergens label",
+                    },
                 },
             ],
 
